@@ -1,4 +1,5 @@
-const { createPost, readAllPost, readPost, updatePost, deletePosts } = require('./post.service');
+const { createPost, readAllPost, readPost, updatePost, deletePost,
+     likePost, disLikePost, existLikePost, commentPost,readAllComment ,deleteComment } = require('./post.service');
 const { checkToken } = require('../../auth/token_validation');
 const json = require('express').json();
 
@@ -78,7 +79,7 @@ module.exports = {
             if (results['success'] !== 0) {
                 const post_author = results["username"]
                 console.log(results)
-                readAllPost(post_author, (err, results) => {
+                readAllPost((err, results) => {
                     if (err) {
                         console.log(err);
                         return;
@@ -113,7 +114,7 @@ module.exports = {
             }
             if (results['success'] !== 0) {
                 const post_author = results["username"]
-                readPost(post_author, id, (err, results) => {
+                readPost(id, (err, results) => {
                     if (err) {
                         console.log(err);
                         return;
@@ -187,7 +188,7 @@ module.exports = {
             }
         })
     },
-    deletePosts: (req, res) => {
+    deletePost: (req, res) => {
         const token = req.get("authorization").slice(7);
         const id = req.params.id;
         checkToken(token, (results, err) => {
@@ -204,7 +205,7 @@ module.exports = {
             if (results['success'] !== 0) {
                 const post_author = results["username"]
                 console.log(post_author)
-                deletePosts(post_author, id, (err, results) => {
+                deletePost(post_author, id, (err, results) => {
                     if (err) {
                         console.log(err);
                         return;
@@ -220,6 +221,207 @@ module.exports = {
                         return res.json({
                             success: 1,
                             message: "Delete post successfully!"
+                        });
+                    }
+                });
+            }
+        });
+    },
+    likePost: (req, res) => {
+        const token = req.get("authorization").slice(7);
+        const id = req.params.id;
+        checkToken(token, (results, err) => {
+            if (err) {
+                console.log(err);
+            }
+            if (results['success'] === 0) {
+                res.json({
+                    success: 0,
+                    message: "Token Not Valid"
+                });
+
+            }
+            if (results['success'] !== 0) {
+                const like_author = results["username"]
+                readPost(id, (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+                    if (results["rows"].length === 0) {
+                        return res.json({
+                            success: 0,
+                            message: "Record not found!"
+                        });
+                    }
+                    else {
+                        existLikePost(id, like_author, (err, results) => {
+                            if (err) {
+                                console.log(err);
+                            }
+                            console.log(results)
+                            if (results['rowCount'] !== 0) {
+                                disLikePost(like_author, id, (err, results) => {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    if (results["rowCount"] == 0) {
+                                        return res.json({
+                                            success: 0,
+                                            message: "Record not found!"
+                                        });
+                                    }
+                                    if (results["rowCount"] == 1) {
+                                        return res.json({
+                                            success: 1,
+                                            message: "dislike post successfully!"
+                                        });
+                                    }
+                                });
+                            }
+                            if (results['rowCount'] === 0) {
+                                likePost(like_author, id, (err, results) => {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    if (results["rowCount"] == 0) {
+                                        return res.json({
+                                            success: 0,
+                                            message: "Record not found!"
+                                        });
+                                    }
+                                    if (results["rowCount"] == 1) {
+                                        return res.json({
+                                            success: 1,
+                                            message: "like post successfully!"
+                                        });
+                                    }
+                                });
+                            }
+                        })
+
+                    }
+                });
+            }
+        })
+    },
+    commentPost: (req, res) => {
+        const token = req.get("authorization").slice(7);
+        const body = req.body;
+        checkToken(token, (results, err) => {
+            if (err) {
+                console.log(err);
+            }
+            console.log(results['username'])
+            if (results['success'] === 0) {
+                res.json({
+                    success: 0,
+                    message: "Token Not Valid"
+                })
+
+            }
+            else if (results['success'] !== 0) {
+                const comment_author = results["username"]
+                const comment_post = body.comment
+                const post_id = body.id
+
+                commentPost(comment_author, comment_post, post_id, (err, results) => {
+                    if (err) {
+                        console.log("error:", err);
+                    }
+                    if (!results) {
+                        return res.json({
+                            success: 0,
+                            message: "Faild save comment"
+                        });
+                    }
+                    if (results) {
+                        return res.json({
+                            success: 1,
+                            message: "comment save successfully!"
+                        });
+                    }
+                })
+
+                // return res.json({
+                //     data: comment_post
+                // })
+            }
+            else {
+                res.json({
+                    success: 0,
+                    message: ""
+                });
+            }
+        });
+    },
+    readAllComment: (req, res) => {
+        const token = req.get("authorization").slice(7);
+        const comment_id = req.params.id;
+        checkToken(token, (results, err) => {
+            if (err) {
+                console.log(err);
+            }
+            if (results['success'] === 0) {
+                res.json({
+                    success: 0,
+                    message: "Token Not Valid"
+                });
+
+            }
+            if (results['success'] !== 0) {
+                const post_author = results["username"]
+                readAllComment(comment_id, (err, results) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    if (results["rows"].length === 0) {
+                        return res.json({
+                            success: 0,
+                            message: "Record not found!"
+                        });
+                    }
+                    return res.json({
+                        success: 1,
+                        data: results["rows"]
+                    });
+                });
+            }
+        });
+    },
+    deleteComment: (req, res) => {
+        const token = req.get("authorization").slice(7);
+        const comment_id = String(req.params.id);
+        checkToken(token, (results, err) => {
+            if (err) {
+                console.log(err);
+            }
+            if (results['success'] === 0) {
+                res.json({
+                    success: 0,
+                    message: "Token Not Valid"
+                });
+
+            }
+            if (results['success'] !== 0) {
+                const post_author = results["username"]
+                console.log(post_author)
+                deleteComment(post_author, comment_id, (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+                    if (results["rowCount"] == 0) {
+                        return res.json({
+                            success: 0,
+                            message: "Record not found!"
+                        });
+                    }
+                    console.log(results)
+                    if (results["rowCount"] == 1) {
+                        return res.json({
+                            success: 1,
+                            message: "Delete comment successfully!"
                         });
                     }
                 });
