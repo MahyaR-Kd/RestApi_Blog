@@ -1,8 +1,9 @@
-const path = require('path');
 const express = require('express');
 const app = express();
-const PostRouter = require('./api/blog/post.router')
+const PostRouter = require('./api/blog/post.router');
 const DB_Router = require('./config/db.router');
+const { middleware } = require('./auth/middleware');
+
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -10,10 +11,9 @@ app.use((req, res, next) => {
     next()
 });
 
-app.use('/posts', PostRouter)
+app.use('/posts', middleware, PostRouter);
+
 app.use('/db', DB_Router);
-
-
 
 
 const PORT = process.env.PORT || 3030;

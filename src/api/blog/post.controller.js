@@ -1,432 +1,276 @@
 const { createPost, readAllPost, readPost, updatePost, deletePost,
-     likePost, disLikePost, existLikePost, commentPost,readAllComment ,deleteComment } = require('./post.service');
+    likePost, disLikePost, existLikePost, commentPost, readAllComment, deleteComment } = require('./post.service');
 const { checkToken } = require('../../auth/token_validation');
 const json = require('express').json();
 
 module.exports = {
+
     createPost: (req, res) => {
-        const token = req.get("authorization").slice(7);
         const body = req.body;
-        checkToken(token, (results, err) => {
+        const authorization = req.authorization;
+        const post_author = authorization["username"];
+        const post_content = body.content;
+        const post_title = body.title;
+        const post_excerpt = body.excerpt;
+        const post_status = body.status;
+        const data = {};
+
+        var keys = ["post_author", "post_content", "post_title", "post_excerpt", "post_status"];
+        var values = [post_author, post_content, post_title, post_excerpt, post_status];
+        for (var i = 0; i < keys.length; i++) {
+            data[keys[i]] = values[i];
+        }
+
+        createPost(data, (err, results) => {
             if (err) {
-                console.log(err);
+                console.log("error:", err);
             }
-            console.log(results['username'])
-            if (results['success'] === 0) {
-                res.json({
+            if (!results) {
+                return res.json({
                     success: 0,
-                    message: "Token Not Valid"
-                })
-
-            }
-            else if (results['success'] !== 0) {
-                const post_author = results["username"]
-                const post_content = body.content
-                const post_title = body.title
-                const post_excerpt = body.excerpt
-                const post_status = body.status
-                const data = {};
-
-                var keys = ["post_author", "post_content", "post_title", "post_excerpt", "post_status"];
-                var values = [post_author, post_content, post_title, post_excerpt, post_status];
-                for (var i = 0; i < keys.length; i++) {
-                    data[keys[i]] = values[i];
-                }
-
-                createPost(data, (err, results) => {
-                    if (err) {
-                        console.log("error:", err);
-                    }
-                    if (!results) {
-                        return res.json({
-                            success: 0,
-                            message: "Faild Creation Post"
-                        });
-                    }
-                    if (results) {
-                        return res.json({
-                            success: 1,
-                            message: "Creation Post successfully!"
-                        });
-                    }
-                })
-
-                // return res.json({
-                //     data: data
-                // })
-            }
-            else {
-                res.json({
-                    success: 0,
-                    message: ""
+                    message: "Faild Creation Post"
                 });
             }
-        });
+            if (results) {
+                return res.json({
+                    success: 1,
+                    message: "Creation Post successfully!"
+                });
+            }
+        })
+
     },
     readAllPost: (req, res) => {
-        const token = req.get("authorization").slice(7);
-        checkToken(token, (results, err) => {
+
+        readAllPost((err, results) => {
             if (err) {
                 console.log(err);
+                return;
             }
-            if (results['success'] === 0) {
-                res.json({
+            if (results["rows"].length === 0) {
+                return res.json({
                     success: 0,
-                    message: "Token Not Valid"
-                });
-
-            }
-            if (results['success'] !== 0) {
-                const post_author = results["username"]
-                console.log(results)
-                readAllPost((err, results) => {
-                    if (err) {
-                        console.log(err);
-                        return;
-                    }
-                    if (results["rows"].length === 0) {
-                        return res.json({
-                            success: 0,
-                            message: "Record not found!"
-                        });
-                    }
-                    return res.json({
-                        success: 1,
-                        data: results["rows"]
-                    });
+                    message: "Record not found!"
                 });
             }
+            return res.json({
+                success: 1,
+                data: results["rows"]
+            });
         });
     },
     readPost: (req, res) => {
-        const token = req.get("authorization").slice(7);
         const id = req.params.id;
-        checkToken(token, (results, err) => {
+        readPost(id, (err, results) => {
             if (err) {
                 console.log(err);
+                return;
             }
-            if (results['success'] === 0) {
-                res.json({
+            if (results["rows"].length === 0) {
+                return res.json({
                     success: 0,
-                    message: "Token Not Valid"
-                });
-
-            }
-            if (results['success'] !== 0) {
-                const post_author = results["username"]
-                readPost(id, (err, results) => {
-                    if (err) {
-                        console.log(err);
-                        return;
-                    }
-                    if (results["rows"].length === 0) {
-                        return res.json({
-                            success: 0,
-                            message: "Record not found!"
-                        });
-                    }
-                    return res.json({
-                        success: 1,
-                        data: results["rows"]
-                    });
+                    message: "Record not found!"
                 });
             }
+            return res.json({
+                success: 1,
+                data: results["rows"]
+            });
         });
+
     },
     updatePost: (req, res) => {
-        const token = req.get("authorization").slice(7);
         const body = req.body;
         const id = req.params.id;
-        checkToken(token, (results, err) => {
+        const authorization = req.authorization;
+        const post_author = authorization["username"];
+        const post_id = id
+        const post_content = body.content
+        const post_title = body.title
+        const post_excerpt = body.excerpt
+        const post_status = body.status
+        const data = {};
+
+        var keys = ["post_id", "post_author", "post_content", "post_title", "post_excerpt", "post_status"];
+        var values = [post_id, post_author, post_content, post_title, post_excerpt, post_status];
+        for (var i = 0; i < keys.length; i++) {
+            data[keys[i]] = values[i];
+        }
+        updatePost(data, (err, results) => {
             if (err) {
-                console.log(err);
+                console.log("error:", err);
             }
-            if (results['success'] === 0) {
-                res.json({
+            if (!results) {
+                return res.json({
                     success: 0,
-                    message: "Token Not Valid"
-                })
-
+                    message: "Faild Update Post"
+                });
             }
-            if (results['success'] !== 0) {
-                const post_author = results["username"]
-                const post_id = id
-                const post_content = body.content
-                const post_title = body.title
-                const post_excerpt = body.excerpt
-                const post_status = body.status
-                const data = {};
-
-                var keys = ["post_id", "post_author", "post_content", "post_title", "post_excerpt", "post_status"];
-                var values = [post_id, post_author, post_content, post_title, post_excerpt, post_status];
-                for (var i = 0; i < keys.length; i++) {
-                    data[keys[i]] = values[i];
-                }
-                updatePost(data, (err, results) => {
-                    if (err) {
-                        console.log("error:", err);
-                    }
-                    if (!results) {
-                        return res.json({
-                            success: 0,
-                            message: "Faild Update Post"
-                        });
-                    }
-                    if (results) {
-                        return res.json({
-                            success: 1,
-                            message: "Update Post successfully!"
-                        });
-                    }
-                })
-            }
-            else {
-                res.json({
-                    success: 0,
-                    message: ""
+            if (results) {
+                return res.json({
+                    success: 1,
+                    message: "Update Post successfully!"
                 });
             }
         })
     },
     deletePost: (req, res) => {
-        const token = req.get("authorization").slice(7);
         const id = req.params.id;
-        checkToken(token, (results, err) => {
+        const authorization = req.authorization;
+        const post_author = authorization["username"];
+        deletePost(post_author, id, (err, results) => {
             if (err) {
                 console.log(err);
+                return;
             }
-            if (results['success'] === 0) {
-                res.json({
+            if (results["rowCount"] == 0) {
+                return res.json({
                     success: 0,
-                    message: "Token Not Valid"
+                    message: "Record not found!"
                 });
-
             }
-            if (results['success'] !== 0) {
-                const post_author = results["username"]
-                console.log(post_author)
-                deletePost(post_author, id, (err, results) => {
-                    if (err) {
-                        console.log(err);
-                        return;
-                    }
-                    if (results["rowCount"] == 0) {
-                        return res.json({
-                            success: 0,
-                            message: "Record not found!"
-                        });
-                    }
-                    console.log(results)
-                    if (results["rowCount"] == 1) {
-                        return res.json({
-                            success: 1,
-                            message: "Delete post successfully!"
-                        });
-                    }
+            console.log(results)
+            if (results["rowCount"] == 1) {
+                return res.json({
+                    success: 1,
+                    message: "Delete post successfully!"
                 });
             }
         });
     },
     likePost: (req, res) => {
-        const token = req.get("authorization").slice(7);
         const id = req.params.id;
-        checkToken(token, (results, err) => {
+        const authorization = req.authorization;
+        console.log(authorization)
+        const like_author = authorization["username"];
+        readPost(id, (err, results) => {
             if (err) {
                 console.log(err);
+                return;
             }
-            if (results['success'] === 0) {
-                res.json({
+            if (results["rows"].length === 0) {
+                return res.json({
                     success: 0,
-                    message: "Token Not Valid"
+                    message: "Record not found!"
                 });
-
             }
-            if (results['success'] !== 0) {
-                const like_author = results["username"]
-                readPost(id, (err, results) => {
+            else {
+                existLikePost(id, like_author, (err, results) => {
                     if (err) {
                         console.log(err);
-                        return;
                     }
-                    if (results["rows"].length === 0) {
-                        return res.json({
-                            success: 0,
-                            message: "Record not found!"
-                        });
-                    }
-                    else {
-                        existLikePost(id, like_author, (err, results) => {
+                    console.log(results)
+                    if (results['rowCount'] !== 0) {
+                        disLikePost(like_author, id, (err, results) => {
                             if (err) {
                                 console.log(err);
                             }
-                            console.log(results)
-                            if (results['rowCount'] !== 0) {
-                                disLikePost(like_author, id, (err, results) => {
-                                    if (err) {
-                                        console.log(err);
-                                    }
-                                    if (results["rowCount"] == 0) {
-                                        return res.json({
-                                            success: 0,
-                                            message: "Record not found!"
-                                        });
-                                    }
-                                    if (results["rowCount"] == 1) {
-                                        return res.json({
-                                            success: 1,
-                                            message: "dislike post successfully!"
-                                        });
-                                    }
+                            if (results["rowCount"] == 0) {
+                                return res.json({
+                                    success: 0,
+                                    message: "Record not found!"
                                 });
                             }
-                            if (results['rowCount'] === 0) {
-                                likePost(like_author, id, (err, results) => {
-                                    if (err) {
-                                        console.log(err);
-                                    }
-                                    if (results["rowCount"] == 0) {
-                                        return res.json({
-                                            success: 0,
-                                            message: "Record not found!"
-                                        });
-                                    }
-                                    if (results["rowCount"] == 1) {
-                                        return res.json({
-                                            success: 1,
-                                            message: "like post successfully!"
-                                        });
-                                    }
+                            if (results["rowCount"] == 1) {
+                                return res.json({
+                                    success: 1,
+                                    message: "dislike post successfully!"
                                 });
                             }
-                        })
-
+                        });
                     }
+                    if (results['rowCount'] === 0) {
+                        likePost(like_author, id, (err, results) => {
+                            if (err) {
+                                console.log(err);
+                            }
+                            if (results["rowCount"] == 0) {
+                                return res.json({
+                                    success: 0,
+                                    message: "Record not found!"
+                                });
+                            }
+                            if (results["rowCount"] == 1) {
+                                return res.json({
+                                    success: 1,
+                                    message: "like post successfully!"
+                                });
+                            }
+                        });
+                    }
+                })
+
+            }
+        });
+    },
+    commentPost: (req, res) => {
+        const body = req.body;
+        const authorization = req.authorization;
+        const comment_author = authorization["username"];
+        const comment_post = body.comment
+        const post_id = body.id
+
+        commentPost(comment_author, comment_post, post_id, (err, results) => {
+            if (err) {
+                console.log("error:", err);
+            }
+            if (!results) {
+                return res.json({
+                    success: 0,
+                    message: "Faild save comment"
+                });
+            }
+            if (results) {
+                return res.json({
+                    success: 1,
+                    message: "comment save successfully!"
                 });
             }
         })
-    },
-    commentPost: (req, res) => {
-        const token = req.get("authorization").slice(7);
-        const body = req.body;
-        checkToken(token, (results, err) => {
-            if (err) {
-                console.log(err);
-            }
-            console.log(results['username'])
-            if (results['success'] === 0) {
-                res.json({
-                    success: 0,
-                    message: "Token Not Valid"
-                })
 
-            }
-            else if (results['success'] !== 0) {
-                const comment_author = results["username"]
-                const comment_post = body.comment
-                const post_id = body.id
-
-                commentPost(comment_author, comment_post, post_id, (err, results) => {
-                    if (err) {
-                        console.log("error:", err);
-                    }
-                    if (!results) {
-                        return res.json({
-                            success: 0,
-                            message: "Faild save comment"
-                        });
-                    }
-                    if (results) {
-                        return res.json({
-                            success: 1,
-                            message: "comment save successfully!"
-                        });
-                    }
-                })
-
-                // return res.json({
-                //     data: comment_post
-                // })
-            }
-            else {
-                res.json({
-                    success: 0,
-                    message: ""
-                });
-            }
-        });
     },
     readAllComment: (req, res) => {
-        const token = req.get("authorization").slice(7);
         const comment_id = req.params.id;
-        checkToken(token, (results, err) => {
+        readAllComment(comment_id, (err, results) => {
             if (err) {
                 console.log(err);
             }
-            if (results['success'] === 0) {
-                res.json({
+            if (results["rows"].length === 0) {
+                return res.json({
                     success: 0,
-                    message: "Token Not Valid"
-                });
-
-            }
-            if (results['success'] !== 0) {
-                const post_author = results["username"]
-                readAllComment(comment_id, (err, results) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                    if (results["rows"].length === 0) {
-                        return res.json({
-                            success: 0,
-                            message: "Record not found!"
-                        });
-                    }
-                    return res.json({
-                        success: 1,
-                        data: results["rows"]
-                    });
+                    message: "Record not found!"
                 });
             }
+            return res.json({
+                success: 1,
+                data: results["rows"]
+            });
         });
     },
     deleteComment: (req, res) => {
-        const token = req.get("authorization").slice(7);
         const comment_id = String(req.params.id);
-        checkToken(token, (results, err) => {
+        const authorization = req.authorization;
+        const post_author = authorization["username"];
+        deleteComment(post_author, comment_id, (err, results) => {
             if (err) {
                 console.log(err);
+                return;
             }
-            if (results['success'] === 0) {
-                res.json({
+            if (results["rowCount"] == 0) {
+                return res.json({
                     success: 0,
-                    message: "Token Not Valid"
+                    message: "Record not found!"
                 });
-
             }
-            if (results['success'] !== 0) {
-                const post_author = results["username"]
-                console.log(post_author)
-                deleteComment(post_author, comment_id, (err, results) => {
-                    if (err) {
-                        console.log(err);
-                        return;
-                    }
-                    if (results["rowCount"] == 0) {
-                        return res.json({
-                            success: 0,
-                            message: "Record not found!"
-                        });
-                    }
-                    console.log(results)
-                    if (results["rowCount"] == 1) {
-                        return res.json({
-                            success: 1,
-                            message: "Delete comment successfully!"
-                        });
-                    }
+            console.log(results)
+            if (results["rowCount"] == 1) {
+                return res.json({
+                    success: 1,
+                    message: "Delete comment successfully!"
                 });
             }
         });
     },
+
 
 }

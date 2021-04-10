@@ -1,14 +1,17 @@
-const router = require('express').Router();
-const { createPost,readAllPost,readPost,updatePost,deletePost,likePost,commentPost,readAllComment,deleteComment } = require('./post.controller');
+const PostRouter = require('express').Router();
 
-router.post('/', createPost);
-router.get('/', readAllPost);
-router.get('/:id', readPost);
-router.patch('/:id', updatePost);
-router.delete('/:id', deletePost);
-router.post('/like/:id', likePost);
-router.post('/comment', commentPost);
-router.get('/comment/:id', readAllComment);
-router.delete('/comment/:id', deleteComment);
+const { createPost, readAllPost, readPost, updatePost, deletePost,
+    likePost, commentPost, readAllComment, deleteComment } = require('./post.controller');
 
-module.exports = router;
+PostRouter.post('/', createPost);
+PostRouter.get('/', readAllPost);
+PostRouter.get('/:id', readPost);
+PostRouter.patch('/:id', updatePost);
+PostRouter.delete('/:id', deletePost);
+PostRouter.post('/like/:id', likePost);
+PostRouter.post('/comment', commentPost);
+PostRouter.delete('/comment/:id', deleteComment);
+PostRouter.get('/comment/:id', readAllComment);
+
+
+module.exports = PostRouter;
